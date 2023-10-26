@@ -30,8 +30,8 @@ const Login = () => {
   const { data: session, status } = useSession();
   const userRole = session?.user?.role;
 
-  const [username, setUsername] = useState("systemadmin");
-  const [password, setPassword] = useState("systemadmin");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
