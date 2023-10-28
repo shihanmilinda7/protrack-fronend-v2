@@ -150,7 +150,7 @@ export default function Dashboard() {
         toggleSave={toggleSave}
       />
       <div className="flex w-full">
-        <div className="flex flex-col w-[70vw]">
+        <div className="flex flex-col w-[80vw]">
           <h1 className="text-2xl m-4 text-blue-800 font-semibold">
             Elevate productivity today.
           </h1>
@@ -279,7 +279,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className="flex w-[30vw] mr-3 ">
+        <div className="flex w-[20vw] mr-3 ">
           {/* <button onClick={toggleWs1}>click </button> */}
           <DashboardUserLoginTable toggleWs={logginCount} />
         </div>

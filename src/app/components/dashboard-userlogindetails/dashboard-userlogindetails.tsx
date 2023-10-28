@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { UserListTable } from "../chatbox/userlist-table";
 import { calculateTotalHours } from "./utils";
 import { useSession } from "next-auth/react";
+import { DashboardUserListTable } from "./dashboard-userlist-table";
 
 export const DashboardUserLoginTable = ({ toggleWs }: { toggleWs: any }) => {
   //get pathname
@@ -57,15 +58,11 @@ export const DashboardUserLoginTable = ({ toggleWs }: { toggleWs: any }) => {
         (u1: any) => u.userid == u1.userid
       );
       return {
+        userid: u.userid,
         username: u.username,
         staffname: u.staffname,
         status: result ? "Active" : "Inactive",
         totalhours: result1 ? result1.totalhours : "0h-0min",
-        // taskname: pt.taskname,
-        // projecttaskassignid: findAssignTask
-        //   ? findAssignTask.projecttaskassignid
-        //   : 0,
-        // selected: findAssignTask ? true : false,
       };
     });
     setDisplayUserList(tmpUserList);
@@ -74,7 +71,6 @@ export const DashboardUserLoginTable = ({ toggleWs }: { toggleWs: any }) => {
   const getUserList = async () => {
     const reponse = await fetch("api/staff/get-userdata");
     const res = await reponse.json();
-    // setUserList(res.users);
     return res.users;
   };
 
@@ -96,7 +92,8 @@ export const DashboardUserLoginTable = ({ toggleWs }: { toggleWs: any }) => {
   return (
     <div className="w-full">
       {/* {JSON.stringify(displayUserList)} */}
-      <UserListTable userListIn={displayUserList} />
+      <DashboardUserListTable userListIn={displayUserList} />
+      {/* <UserListTable userListIn={displayUserList} /> */}
     </div>
   );
 };

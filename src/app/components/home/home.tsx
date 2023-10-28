@@ -42,15 +42,22 @@ const HomePage = () => {
           <div className="flex flex-col items-center gap-4">
             <NewOrganization />
           </div>
+          
         </div>
-        <div className="items-center justify-end hidden col-span-1 md:flex  w-1/2">
+        <div className="bg-indigo-600 hidden lg:block w-full md:w-1/2 xl:w-1/2 h-screen">
           <img
+            src="https://source.unsplash.com/random"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+        {/* <img
             className="rounded-md min-h-screen"
             src="https://img.freepik.com/free-vector/time-management-concept-with-planning-time-symbols-isometric_1284-55714.jpg"
             alt="header image"
-          />
-        </div>
+          /> */}
       </div>
+      
     </div>
   );
 };

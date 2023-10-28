@@ -9,7 +9,7 @@ export const calculateTotalHours = (loginData = []) => {
 
     // console.log("tmploginTime", tmploginTime);
     // console.log("tmplogoutTime", tmplogoutTime);
-    console.log("new Date()", new Date(), tmploginTime);
+    // console.log("new Date()", new Date(), tmploginTime);
     // const tmplogoutTime: any = logouttime ? new Date(logouttime) : undefined;
     // console.log(session, "tmploginTime", tmploginTime, "tmplogoutTime", tmplogoutTime);
     const sessionHours = tmplogoutTime

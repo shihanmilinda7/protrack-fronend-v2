@@ -29,13 +29,13 @@ const NewOrganization = () => {
 
   const [isCountryListOpen, setIsCountryListOpen] = useState(false);
 
-  const [name, setName] = useState("");
-  const [organizationname, setOrganizationname] = useState("");
+  const [name, setName] = useState("a");
+  const [organizationname, setOrganizationname] = useState("a");
   const [country, setCountry] = useState<any["value"]>("LK");
-  const [address, setAddress] = useState("");
-  const [email, setEmail] = useState("");
-  const [contactno, setContactno] = useState("");
-  const [adminusername, setAdminusername] = useState("");
+  const [address, setAddress] = useState("a");
+  const [email, setEmail] = useState("gggg@gmail.com");
+  const [contactno, setContactno] = useState("a");
+  const [adminusername, setAdminusername] = useState("a");
 
   const [isValidEmail, setIsValidEmail] = useState(true);
 
@@ -56,23 +56,120 @@ const NewOrganization = () => {
   };
 
   const submitHandler = async () => {
-    const isValid = validateGmailAddress(email);
-    console.log("isValid", isValid);
-    if (isValid) {
-      setIsValidEmail(true);
-    } else {
-      setIsValidEmail(false);
-    }
-    toast.info("Coming soon!", {
-      position: "top-right",
-      autoClose: 1000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      progress: undefined,
-      theme: "colored",
+    const validation = inputFieldValidation({
+      name,
+      organizationname,
+      country,
+      address,
+      email,
+      contactno,
+      adminusername,
     });
+
+    try {
+      if (validation == 0) {
+        const isValid = validateGmailAddress(email);
+        if (isValid) {
+          setIsValidEmail(true);
+          //todo....
+          //vaidate organization name & username
+          const result = await organizationnameValidation();
+          console.log("result", result);
+          if (result == "BOTH_EXISTS") {
+            toast.info("Organization name & Username already exists!", {
+              position: "top-right",
+              autoClose: 1000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+            });
+          } else if (result == "EXISTS1") {
+            toast.info("Organization name already exists!", {
+              position: "top-right",
+              autoClose: 1000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+            });
+          } else if (result == "EXISTS2") {
+            toast.info("Username already exists!", {
+              position: "top-right",
+              autoClose: 1000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+            });
+          } else {
+            const res = await newOrganizationSubmit();
+            if (res == "SUCCESS") {
+              toast.success("Organization created successfully!", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+              });
+              window.location.href = "/";
+            }
+          }
+        } else {
+          setIsValidEmail(false);
+        }
+      }
+    } catch (error) {
+      toast.error("Error!", {
+        position: "top-right",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    }
+  };
+
+  const organizationnameValidation = async () => {
+    const reponse = await fetch(
+      "api/organization/organization-validation?organizationname=" +
+        organizationname +
+        "&adminusername=" +
+        adminusername
+    );
+    const res = await reponse.json();
+    return res.message;
+  };
+
+  const newOrganizationSubmit = async () => {
+    const reponse = await fetch("api/organization", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        organizationname,
+        country,
+        address,
+        email,
+        contactno,
+        adminusername,
+      }),
+    });
+    const res = await reponse.json();
+    console.log("reponse", res);
+    return res;
   };
 
   return (

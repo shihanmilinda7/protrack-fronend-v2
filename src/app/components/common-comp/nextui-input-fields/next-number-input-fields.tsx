@@ -5,10 +5,12 @@ const NextNumberInputField = ({
   label,
   value,
   onChange,
+  color = "default",
 }: {
   label: string;
   value: any;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  color?: any;
 }) => {
   return (
     <Input
@@ -16,9 +18,10 @@ const NextNumberInputField = ({
       variant="flat"
       label={label}
       size="sm"
-      placeholder="Type here..." 
+      placeholder="Type here..."
       value={value}
       onChange={onChange}
+      color={color}
     />
   );
 };

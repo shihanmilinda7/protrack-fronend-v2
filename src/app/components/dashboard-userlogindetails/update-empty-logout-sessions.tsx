@@ -6,11 +6,12 @@ import { useEffect, useState } from "react";
 import { inputFieldValidation } from "@/app/utils/utils";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
-import { Button } from "@nextui-org/react";
+import { Button, Input } from "@nextui-org/react";
 import NextAutoFocusTextInputField from "../common-comp/nextui-input-fields/next-autofocus-text-input-fields";
 import DatetimePicker from "../common-comp/datetimepicker";
 import NextDateTimeInputField from "../common-comp/nextui-input-fields/next-datetime-input-fields";
-import { format } from "date-fns";
+import { format, min } from "date-fns";
+import NextNumberInputField from "../common-comp/nextui-input-fields/next-number-input-fields";
 
 const UpdateEmptyLogoutSessions = ({
   isOpenPopup,
@@ -43,14 +44,11 @@ const UpdateEmptyLogoutSessions = ({
   const { data: session, status } = useSession();
   const userid = session?.user?.userid;
 
-  const [datetime, setDatetime] = useState("");
   const [logintime, setLogintime] = useState("");
+  const [logouttime, setLogouttime] = useState("");
 
-  const currentTimestamp = new Date();
-  const formattedDatecurrentTimestamp = format(
-    currentTimestamp,
-    "yyyy-MM-dd'T'HH:mm:ss"
-  );
+  const [hours, setHours] = useState<any>(0);
+  const [minutes, setMinutes] = useState<any>(0);
 
   const customStyles = {
     overlay: {
@@ -70,7 +68,6 @@ const UpdateEmptyLogoutSessions = ({
   useEffect(() => {
     if (logintimeIn) {
       const date = new Date(logintimeIn);
-
       const formattedDate = date.toLocaleString("en-US", {
         year: "numeric",
         month: "2-digit",
@@ -89,12 +86,17 @@ const UpdateEmptyLogoutSessions = ({
   }, [isOpenPopup]);
 
   const sumbitDateHandler = async () => {
-    const val1: any = new Date(logintimeIn);
-    const val2: any = new Date(datetime);
-    const val3: any = new Date(lastLoginTime);
-    const tmpValue1: any = val2 - val1;
-    const tmpValue2: any = val2 - val1;
-    if (tmpValue1 <= 0 || val2 > val3) {
+    const tmpLoginTime: any = new Date(logintimeIn);
+    tmpLoginTime.setHours(tmpLoginTime.getHours() + hours);
+    tmpLoginTime.setMinutes(tmpLoginTime.getMinutes() + minutes);
+    const tmpLogoutTime = format(tmpLoginTime, "yyyy-MM-dd'T'HH:mm:ss");
+
+    const tmpLastLoginTime: any = new Date(lastLoginTime);
+    const tmpLastLoginTime1 = format(tmpLastLoginTime, "yyyy-MM-dd'T'HH:mm:ss");
+    setLogouttime(tmpLogoutTime);
+    if (tmpLastLoginTime1 > tmpLogoutTime) {
+      await sumbitDate(tmpLogoutTime);
+    } else {
       toast.info("Please add valid date time!", {
         position: "top-right",
         autoClose: 1000,
@@ -105,18 +107,12 @@ const UpdateEmptyLogoutSessions = ({
         progress: undefined,
         theme: "colored",
       });
-    } else {
-      await sumbitDate();
     }
   };
 
-  const sumbitDate = async () => {
-    const Date_Time = datetime;
-    const validation = inputFieldValidation({
-      Date_Time,
-    });
+  const sumbitDate = async (datetime) => {
     try {
-      if (validation == 0) {
+      if (hours != 0 || minutes != 0) {
         const response = await fetch(pathname + "/api/auth/get-empty-logout", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -141,6 +137,17 @@ const UpdateEmptyLogoutSessions = ({
           toggleSave();
           setIsOpen(false);
         }
+      } else {
+        toast.info("Cannot be empty!", {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
       }
     } catch (error) {
       toast.error("Error!", {
@@ -156,6 +163,9 @@ const UpdateEmptyLogoutSessions = ({
     }
   };
 
+  const handleFocus = (event) => {
+    event.target.select();
+  };
   return (
     <div>
       <Modal
@@ -168,6 +178,8 @@ const UpdateEmptyLogoutSessions = ({
         <div className="pl-4 pb-1">
           <h1 className="text-base font-semibold text-blue-800">
             You have inactive session
+            {/* You have inactive session {resultTime?.toLocaleTimeString()} */}
+            {/* You have inactive session {JSON.stringify(new Date())} */}
           </h1>
           <h1 className="text-sm font-semibold text-blue-600">
             You logged in at {logintime}
@@ -178,13 +190,28 @@ const UpdateEmptyLogoutSessions = ({
             <div className="-mx-3 flex flex-wrap">
               <div className="w-full px-3 flex flex-col gap-3">
                 <div className="w-full sm:w-1/1">
-                  <div className="flex flex-col min-w-[450px]">
-                    <NextDateTimeInputField
-                      label="Set logout time"
-                      value={datetime}
-                      onChange={(e) => setDatetime(e.target.value)}
-                      minDate={logintimeIn}
-                      maxDate={formattedDatecurrentTimestamp}
+                  <div className="flex min-w-[450px] gap-2">
+                    <Input
+                      type="number"
+                      variant="flat"
+                      label="Hours"
+                      size="sm"
+                      placeholder="Type here..."
+                      value={hours}
+                      onChange={(e) => setHours(parseInt(e.target.value, 10))}
+                      color="primary"
+                      onFocus={handleFocus}
+                    />
+                    <Input
+                      type="number"
+                      variant="flat"
+                      label="Minutes"
+                      size="sm"
+                      placeholder="Type here..."
+                      value={minutes}
+                      onChange={(e) => setMinutes(parseInt(e.target.value, 10))}
+                      color="primary"
+                      onFocus={handleFocus}
                     />
                   </div>
                 </div>
