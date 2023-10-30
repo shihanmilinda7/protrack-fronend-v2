@@ -3,6 +3,11 @@ import fs from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
 import { createDbPath, db } from "@/db";
+import {
+  newCompanyStaff,
+  updateOrgainzationStatus,
+} from "../organization/organization-db-api";
+import { newStaff } from "../staff/staff-db-api";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -32,32 +37,62 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { dbname, password } = await request.json();
+  const { dbname, password, organizationid, email } = await request.json();
   const hashedPassword = await bcrypt.hash(password, 10);
   let message: string = "SUCCESS";
   try {
-    const tmpDb = await createDbPath(dbname);
-    // console.log("tmpDb", tmpDb);
-    const query1 = `INSERT INTO organizations (name,
-      organizationname,
-      country,
-      address,
+    const updateOrgStatus = await updateOrgainzationStatus(
+      organizationid,
+      dbname
+    );
+    await newStaff(
+      "",
+      "",
+      "",
+      "",
+      hashedPassword,
+      `${dbname}admin`,
+      "Admin",
+      "",
+      "",
+      email
+    );
+    await newCompanyStaff(
+      "",
+      "",
+      "",
+      "",
+      hashedPassword,
+      `${dbname}admin`,
+      "Admin",
+      "",
+      "",
       email,
-      contactno,
-      adminusername,status) VALUES (?,?,?,?,?,?,?,?);`;
+      dbname
+    );
+    // const tmpDb = await createDbPath(dbname);
+    // // console.log("tmpDb", tmpDb);
+    // const query1 = `INSERT INTO organizations (name,
+    //   organizationname,
+    //   country,
+    //   address,
+    //   email,
+    //   contactno,
+    //   adminusername,status) VALUES (?,?,?,?,?,?,?,?);`;
 
-    tmpDb
-      .prepare(query1)
-      .run(
-        "name",
-        "organizationname",
-        "country",
-        "address",
-        "email",
-        "contactno",
-        "adminusername",
-        hashedPassword
-      );
+    // tmpDb
+    //   .prepare(query1)
+    //   .run(
+    //     "name",
+    //     "organizationname",
+    //     "country",
+    //     "address",
+    //     "email",
+    //     "contactno",
+    //     "adminusername",
+    //     hashedPassword
+    //   );
+    message = "SUCCESS";
   } catch (error) {
     console.error("Error adding new Organization:", error);
     message = "FAIL";

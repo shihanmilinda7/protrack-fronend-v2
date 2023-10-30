@@ -40,6 +40,7 @@ export async function POST(request: Request) {
     role,
     designation,
     country,
+    email,
   } = await request.json();
   const hashedPassword = await bcrypt.hash(password, 10);
   let message: string = "SUCCESS";
@@ -53,7 +54,8 @@ export async function POST(request: Request) {
       username,
       role,
       designation,
-      country
+      country,
+      email
     );
   } catch (error) {
     console.error("Error adding new staff:", error);
@@ -75,6 +77,7 @@ export async function PUT(request: Request) {
     role,
     designation,
     country,
+    email,
   } = await request.json();
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -90,7 +93,8 @@ export async function PUT(request: Request) {
       userid,
       role,
       designation,
-      country
+      country,
+      email
     );
   } catch (error) {
     console.error("Error updating staff:", error);

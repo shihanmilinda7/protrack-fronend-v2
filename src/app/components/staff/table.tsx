@@ -40,9 +40,16 @@ export const StaffTable = ({
       <div className="shadow rounded border-b border-gray-200 w-full">
         <Table isStriped aria-label="Example static collection table">
           <TableHeader>
-            {tableHeads.map((head) => (
-              <TableColumn key={head}>{head}</TableColumn>
-            ))}
+            <TableColumn className="w-10">#</TableColumn>
+            <TableColumn className="w-40">Name</TableColumn>
+            <TableColumn className="w-20">Username</TableColumn>
+            <TableColumn className="w-40">Email</TableColumn>
+            <TableColumn className="w-20">Contract Type</TableColumn>
+            <TableColumn className="w-20">Role</TableColumn>
+            <TableColumn className="w-20">Contact No</TableColumn>
+            <TableColumn className="w-40">Designation</TableColumn>
+            <TableColumn className="w-20">NIC</TableColumn>
+            <TableColumn className="w-10">-</TableColumn>
           </TableHeader>
           <TableBody>
             {staffRowData?.map((tableRow: any, index: number) => (
@@ -52,6 +59,7 @@ export const StaffTable = ({
                   {tableRow.staffname}
                 </TableCell>
                 <TableCell>{tableRow.username}</TableCell>
+                <TableCell>{tableRow.email}</TableCell>
                 <TableCell>{tableRow.contracttype}</TableCell>
                 <TableCell>{tableRow.role}</TableCell>
                 <TableCell>{tableRow.contactno}</TableCell>

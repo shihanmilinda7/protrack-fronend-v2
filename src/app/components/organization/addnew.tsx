@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
@@ -21,6 +21,7 @@ import NextEmailInputField, {
   validateGmailAddress,
 } from "../common-comp/nextui-input-fields/next-email-input-fields";
 import { AiOutlineCloseCircle } from "react-icons/ai";
+import { webSocket } from "@/web-socket";
 
 const NewOrganization = () => {
   const router = useRouter();
@@ -33,9 +34,10 @@ const NewOrganization = () => {
   const [organizationname, setOrganizationname] = useState("a");
   const [country, setCountry] = useState<any["value"]>("LK");
   const [address, setAddress] = useState("a");
-  const [email, setEmail] = useState("gggg@gmail.com");
+  const [companyemail, setCompanyemail] = useState("gggg@gmail.com");
+  const [adminemail, setAdminemail] = useState("xxxxx@gmail.com");
   const [contactno, setContactno] = useState("a");
-  const [adminusername, setAdminusername] = useState("a");
+  // const [adminusername, setAdminusername] = useState("a");
 
   const [isValidEmail, setIsValidEmail] = useState(true);
 
@@ -55,20 +57,24 @@ const NewOrganization = () => {
     },
   };
 
+  // useEffect(() => {
+  //   webSocket.emit("join_room", "publicroom");
+  // }, []);
+
   const submitHandler = async () => {
     const validation = inputFieldValidation({
       name,
       organizationname,
       country,
       address,
-      email,
+      companyemail,
       contactno,
-      adminusername,
+      // adminusername,
     });
 
     try {
       if (validation == 0) {
-        const isValid = validateGmailAddress(email);
+        const isValid = validateGmailAddress(companyemail);
         if (isValid) {
           setIsValidEmail(true);
           //todo....
@@ -76,7 +82,7 @@ const NewOrganization = () => {
           const result = await organizationnameValidation();
           console.log("result", result);
           if (result == "BOTH_EXISTS") {
-            toast.info("Organization name & Username already exists!", {
+            toast.info("Organization name & Admin email already exists!", {
               position: "top-right",
               autoClose: 1000,
               hideProgressBar: false,
@@ -98,7 +104,7 @@ const NewOrganization = () => {
               theme: "colored",
             });
           } else if (result == "EXISTS2") {
-            toast.info("Username already exists!", {
+            toast.info("Admin email already exists!", {
               position: "top-right",
               autoClose: 1000,
               hideProgressBar: false,
@@ -121,6 +127,12 @@ const NewOrganization = () => {
                 progress: undefined,
                 theme: "colored",
               });
+              webSocket.emit("join_room", "publicroom");
+              webSocket.emit("request_new_org", {
+                message: "request for new Organization",
+                room: "publicroom",
+              });
+
               window.location.href = "/";
             }
           }
@@ -146,8 +158,8 @@ const NewOrganization = () => {
     const reponse = await fetch(
       "api/organization/organization-validation?organizationname=" +
         organizationname +
-        "&adminusername=" +
-        adminusername
+        "&adminemail=" +
+        adminemail
     );
     const res = await reponse.json();
     return res.message;
@@ -162,9 +174,9 @@ const NewOrganization = () => {
         organizationname,
         country,
         address,
-        email,
+        companyemail,
         contactno,
-        adminusername,
+        adminemail,
       }),
     });
     const res = await reponse.json();
@@ -174,15 +186,21 @@ const NewOrganization = () => {
 
   return (
     <div>
-      <Button
+      <button
+        onClick={() => setIsOpen(true)}
+        className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+      >
+        Get started with <br /> creating organization
+      </button>
+      {/* <Button
         color="primary"
         endContent={<FaHourglassStart className="h-4 w-4" />}
         onClick={() => setIsOpen(true)}
+        className="m-2"
+        size="lg"
       >
-        <span className="m-2">
-          Get started with <br /> create organization
-        </span>
-      </Button>
+        Get started with <br /> create organization
+      </Button> */}
       <Modal
         isOpen={isOpen}
         onRequestClose={() => setIsOpen(false)}
@@ -253,9 +271,9 @@ const NewOrganization = () => {
             <div className="-mx-3 flex flex-wrap ">
               <div className="w-full">
                 <NextEmailInputField
-                  label="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  label="Company email"
+                  value={companyemail}
+                  onChange={(e) => setCompanyemail(e.target.value)}
                 />
               </div>
               {isValidEmail === false && (
@@ -278,9 +296,9 @@ const NewOrganization = () => {
             <div className="-mx-3 flex flex-wrap ">
               <div className="w-full">
                 <NextTextInputField
-                  label="Set username for organization admin"
-                  value={adminusername}
-                  onChange={(e) => setAdminusername(e.target.value)}
+                  label="Admin email"
+                  value={adminemail}
+                  onChange={(e) => setAdminemail(e.target.value)}
                 />
               </div>
             </div>

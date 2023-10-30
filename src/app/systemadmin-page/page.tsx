@@ -12,6 +12,7 @@ import { COUNTRIES } from "../components/country-selector/countries";
 import NextTextInputField from "../components/common-comp/nextui-input-fields/next-text-input-fields";
 import { inputFieldValidation } from "../utils/utils";
 import { toast } from "react-toastify";
+import { webSocket } from "@/web-socket";
 
 export default function SystemAdmin() {
   const router = useRouter();
@@ -34,14 +35,19 @@ export default function SystemAdmin() {
   const [password, setPassword] = useState("");
   const [confirmpassword, setConfirmpassword] = useState("");
 
+  const [requestCount, setRequestCount] = useState(1);
+
   const organizationid = React.useMemo(
     () => Array.from(selectedOrgKey).join(", "),
     [selectedOrgKey]
   );
 
   useEffect(() => {
-    getPendingOrganizations();
+    webSocket.emit("join_room", "publicroom");
   }, []);
+  useEffect(() => {
+    getPendingOrganizations();
+  }, [requestCount]);
 
   useEffect(() => {
     suggestDbname();
@@ -58,6 +64,16 @@ export default function SystemAdmin() {
       setOrgCountry(tmpValue.title);
     }
   }, [selectedOrgKey]);
+
+  useEffect(() => {
+    webSocket.on("receive_request_new_org", function (data) {
+      setRequestCount((prv) => prv + 1);
+    });
+
+    return () => {
+      webSocket.off("receive_request_new_org");
+    };
+  }, []);
 
   const getPendingOrganizations = async () => {
     const fetchData = async () => {
@@ -84,10 +100,12 @@ export default function SystemAdmin() {
       body: JSON.stringify({
         dbname,
         password,
+        organizationid,
+        email: selOrg.adminemail,
       }),
     });
     const res = await details.json();
-    if (res.message == "SUCCESS") {
+    if (res == "SUCCESS") {
       toast.success("Organization created successfully!", {
         position: "top-right",
         autoClose: 1000,
@@ -98,6 +116,8 @@ export default function SystemAdmin() {
         progress: undefined,
         theme: "colored",
       });
+      setRequestCount((prv) => prv + 1);
+      setSelectedOrgKey(new Set([]));
     } else {
       toast.error("Error!", {
         position: "top-right",
@@ -111,13 +131,8 @@ export default function SystemAdmin() {
       });
     }
   };
-  const copyDatabase = async () => {
-    const Database_Name = dbname;
-    const validation = inputFieldValidation({
-      Database_Name,
-      password,
-    });
 
+  const copyDatabase = async () => {
     const fetchData = async () => {
       const details = await fetch("api/copy-database?dbname=" + dbname);
       const res = await details.json();
@@ -137,21 +152,19 @@ export default function SystemAdmin() {
         });
       }
     };
-    if (validation == 0) {
-      if (password != confirmpassword) {
-        toast.info("Password does not match!", {
-          position: "top-right",
-          autoClose: 1000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-        });
-      } else {
-        fetchData().catch(console.error);
-      }
+    if (password != confirmpassword) {
+      toast.info("Password does not match!", {
+        position: "top-right",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    } else {
+      fetchData().catch(console.error);
     }
   };
 
@@ -162,6 +175,40 @@ export default function SystemAdmin() {
     const suggestedNameLowercase = suggestedName.toLowerCase();
     setDbname(suggestedNameLowercase);
     return suggestedNameLowercase;
+  };
+
+  const dbnameValidation = async () => {
+    const reponse = await fetch(
+      "api/organization/dbname-validation?dbname=" + dbname
+    );
+    const res = await reponse.json();
+    return res.message;
+  };
+
+  const activeBtnHandler = async () => {
+    const Database_Name = dbname;
+    const validation = inputFieldValidation({
+      Database_Name,
+      password,
+    });
+
+    if (validation == 0) {
+      const dbnameResult = await dbnameValidation();
+      if (dbnameResult == "EXISTS") {
+        toast.info("Database name already exists!", {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      } else {
+        await copyDatabase();
+      }
+    }
   };
 
   if (status === "loading") {
@@ -184,14 +231,21 @@ export default function SystemAdmin() {
             <ListboxWrapper>
               <div className="flex">
                 <div className="flex flex-col">
-                  <span className="text-base font-semibold leading-none text-gray-900 select-none m-2">
-                    <span className="text-indigo-600">Pending approvals</span>
+                  <span className="text-sm font-semibold leading-none text-gray-900 select-none mt-2 mr-2 ml-2">
+                    <span className="text-indigo-600">
+                      Pending approval <br /> organization
+                    </span>
                   </span>
                   <NextListView
                     value={selectedOrgKey}
                     onChange={setSelectedOrgKey}
                     listArray={pendingOrganizationsNameValuePair}
                   />
+                  {pendingOrganizationsNameValuePair.length == 0 ? (
+                    <span className="ml-2 font-semibold text-sm">
+                      No requests
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </ListboxWrapper>
@@ -200,7 +254,7 @@ export default function SystemAdmin() {
             <ListboxWrapper>
               <div className="flex">
                 <div className="flex flex-col w-full">
-                  <span className="text-base font-semibold leading-none text-gray-900 select-none m-2">
+                  <span className="text-sm font-semibold leading-none text-gray-900 select-none m-2">
                     <span className="text-indigo-600">
                       Organization Name :{orgName}
                     </span>
@@ -213,6 +267,16 @@ export default function SystemAdmin() {
 
                       <span className="font-semibold text-sm">
                         Country :<span className="text-sm">{orgCountry}</span>
+                      </span>
+
+                      <span className="font-semibold text-sm">
+                        Company email :
+                        <span className="text-sm">{selOrg.companyemail}</span>
+                      </span>
+
+                      <span className="font-semibold text-sm">
+                        Admin email :
+                        <span className="text-sm">{selOrg.adminemail}</span>
                       </span>
 
                       <span className="font-semibold text-sm">
@@ -250,8 +314,8 @@ export default function SystemAdmin() {
                         onChange={(e) => setConfirmpassword(e.target.value)}
                         color="primary"
                       />
-                      <Button color="primary" onClick={copyDatabase}>
-                        Create Database
+                      <Button color="primary" onClick={activeBtnHandler}>
+                        Active organization
                       </Button>
                     </div>
                   </div>

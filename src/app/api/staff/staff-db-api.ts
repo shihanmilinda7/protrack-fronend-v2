@@ -40,7 +40,8 @@ export const newStaff = async (
   username,
   role,
   designation,
-  country
+  country,
+  email
 ) => {
   let rows;
   const transaction = db.transaction(() => {
@@ -51,7 +52,7 @@ export const newStaff = async (
         contactno,
         nic,
         designation,
-        country,createdAt) VALUES (?,?,?,?,?,?,?);`;
+        country,createdAt,email) VALUES (?,?,?,?,?,?,?,?);`;
 
       const staff = db
         .prepare(query1)
@@ -62,14 +63,15 @@ export const newStaff = async (
           nic,
           designation,
           country,
-          currentTimestamp.toISOString()
+          currentTimestamp.toISOString(),
+          email
         );
 
       const query2 = `INSERT INTO users (staffid,
             username,
             password,
             role,
-            country,createdAt) VALUES (?,?,?,?,?,?);`;
+            country,createdAt,email) VALUES (?,?,?,?,?,?,?);`;
 
       db.prepare(query2).run(
         staff.lastInsertRowid,
@@ -77,7 +79,8 @@ export const newStaff = async (
         hashedPassword,
         role,
         country,
-        currentTimestamp.toISOString()
+        currentTimestamp.toISOString(),
+        email
       );
     } catch (error) {
       console.error("Transaction error:", error);
@@ -97,7 +100,8 @@ export const updateStaff = async (
   userid,
   role,
   designation,
-  country
+  country,
+  email
 ) => {
   let rows;
   const transaction = db.transaction(() => {
@@ -107,7 +111,8 @@ export const updateStaff = async (
       contactno = ?,
       nic = ?,
       designation = ?,
-      country = ? WHERE staffid = ?;`;
+      country = ?,
+      email = ? WHERE staffid = ?;`;
 
       db.prepare(query1).run(
         staffname,
@@ -116,6 +121,7 @@ export const updateStaff = async (
         nic,
         designation,
         country,
+        email,
         staffid
       );
 
@@ -233,7 +239,9 @@ export const getSearchStaffData = async (
       WHERE staffname LIKE ? AND designation LIKE ?
       LIMIT ${postsPerPage} OFFSET ${offset};`;
 
-      rows = db.prepare(query).all(`%${searchStaffName}%`, `%${searchDesignation}%`);
+      rows = db
+        .prepare(query)
+        .all(`%${searchStaffName}%`, `%${searchDesignation}%`);
     } catch (error) {
       console.error("Transaction error:", error);
     }

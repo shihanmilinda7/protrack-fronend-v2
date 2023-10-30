@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { ListboxWrapper } from "../common-comp/nextui-input-fields/ListboxWrapper";
 import { FcApprove, FcDisapprove } from "react-icons/fc";
+import { ListboxWrapperType1 } from "./ListboxWrapperType1";
 
 export const DashboardUserListTable = ({
   userListIn,
@@ -24,7 +25,7 @@ export const DashboardUserListTable = ({
   return (
     <div className="py-2 sm:w-5/5 w-full">
       <div className="w-full">
-        <ListboxWrapper>
+        <ListboxWrapperType1>
           <Listbox
             aria-label="Single selection example"
             variant="flat"
@@ -57,12 +58,13 @@ export const DashboardUserListTable = ({
                 description={
                   y.status == "Active" ? `${y.totalhours}+` : `${y.totalhours}`
                 }
+                showDivider={true}
               >
                 {y.username == username ? "You" : y.staffname}
               </ListboxItem>
             ))}
           </Listbox>
-        </ListboxWrapper>
+        </ListboxWrapperType1>
       </div>
     </div>
   );

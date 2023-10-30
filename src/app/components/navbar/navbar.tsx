@@ -3,7 +3,7 @@
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useDispatch } from "react-redux";
 import { setsaved } from "@/store/saveSlice";
@@ -52,6 +52,25 @@ const Navbar = () => {
     await signOut();
     window.location.href = "/";
   };
+
+  useEffect(() => {
+    webSocket.on("receive_request_new_org", function (data) {
+      toast.info("New organization request!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    });
+
+    return () => {
+      webSocket.off("receive_request_new_org");
+    };
+  }, []);
 
   useEffect(() => {
     dispatch(setSearchStaffName("-1"));

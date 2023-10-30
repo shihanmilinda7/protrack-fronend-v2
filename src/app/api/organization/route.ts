@@ -22,9 +22,9 @@ export async function POST(request: Request) {
     organizationname,
     country,
     address,
-    email,
+    companyemail,
     contactno,
-    adminusername,
+    adminemail,
   } = await request.json();
   let message: string = "SUCCESS";
   try {
@@ -33,9 +33,9 @@ export async function POST(request: Request) {
       organizationname,
       country,
       address,
-      email,
+      companyemail,
       contactno,
-      adminusername
+      adminemail
     );
   } catch (error) {
     console.error("Error adding new Organization:", error);

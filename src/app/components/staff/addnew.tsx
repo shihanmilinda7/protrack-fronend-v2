@@ -16,10 +16,14 @@ import IconConfirmAlertbox from "../common-comp/icon-confirm-alertbox";
 import CountrySelector from "../country-selector/selector";
 import { COUNTRIES } from "../country-selector/countries";
 import { SelectMenuOption } from "../country-selector/types";
+import NextEmailInputField, {
+  validateEmail,
+  validateGmailAddress,
+} from "../common-comp/nextui-input-fields/next-email-input-fields";
 
 type ParamTypes = {
   buttonName: string;
-  selRowData?: StaffObj;
+  selRowData?: any;
   delButton?: boolean;
   setReloadTable?: () => void;
   showAddnewAlert?: () => void;
@@ -58,6 +62,7 @@ const StaffAddNew = (params: ParamTypes) => {
     params.selRowData?.password ?? ""
   );
   const [userid, setUserid] = useState(params.selRowData?.userid ?? "");
+  const [email, setEmail] = useState(params.selRowData?.email ?? "");
 
   const [showDelButton, setShowDelButton] = useState(params.delButton);
 
@@ -70,6 +75,8 @@ const StaffAddNew = (params: ParamTypes) => {
   const [country, setCountry] = useState<any["value"]>(
     params.selRowData?.country ?? "LK"
   );
+
+  const [isValidEmail, setIsValidEmail] = useState(true);
 
   const customStyles = {
     overlay: {
@@ -124,10 +131,16 @@ const StaffAddNew = (params: ParamTypes) => {
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-    if (staffid) {
-      update();
+    const isValid = validateEmail(email);
+    if (isValid) {
+      setIsValidEmail(true);
+      if (staffid) {
+        update();
+      } else {
+        addnew();
+      }
     } else {
-      addnew();
+      setIsValidEmail(false);
     }
   };
 
@@ -162,6 +175,7 @@ const StaffAddNew = (params: ParamTypes) => {
       Role,
       Designation,
       country,
+      email,
     });
     try {
       //check input field empty or not
@@ -207,6 +221,7 @@ const StaffAddNew = (params: ParamTypes) => {
                 role: role.values().next().value,
                 designation: designation.values().next().value,
                 country,
+                email,
               }),
             });
             const res = await responseNewStaff.json();
@@ -237,6 +252,7 @@ const StaffAddNew = (params: ParamTypes) => {
               setConfirmpassword("");
               setCountry("LK");
               setContactno("");
+              setEmail("");
             }
           }
         }
@@ -269,6 +285,7 @@ const StaffAddNew = (params: ParamTypes) => {
       Role,
       Designation,
       country,
+      email,
     });
 
     try {
@@ -320,6 +337,7 @@ const StaffAddNew = (params: ParamTypes) => {
                 role: role.values().next().value,
                 designation: designation.values().next().value,
                 country,
+                email,
               }),
             });
             const res = await responseUpdateStaff.json();
@@ -497,17 +515,23 @@ const StaffAddNew = (params: ParamTypes) => {
                   }
                   optionValues={designationOptionValues}
                 />
-
-                {/* <TextInputField
-                  label="Designation"
-                  id="designation"
-                  name="designation"
-                  autoComplete=""
-                  placeholder="Designation"
-                  value={designation}
-                  onChange={(e) => setDesignation(e.target.value)}
-                /> */}
               </div>
+            </div>
+            <div className="-mx-3 flex flex-wrap ">
+              <div className="w-full">
+                <NextEmailInputField
+                  label="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              {isValidEmail === false && (
+                <div className="w-full pl-1 pr-1">
+                  <span className="font-semibold text-red-600">
+                    Invalid email address please provide valid gmail
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="-mx-3 flex flex-wrap sm:flex-nowrap gap-2">
